@@ -31,12 +31,12 @@ class _MyAPI(BundleAPI):
         # If the description does not contain a synopsis, we
         # add the one in ``ci``, which comes from bundle_info.xml.
         from . import cmd
-        if ci.name == "tutorial cofm":
-            func = cmd.cofm
-            desc = cmd.cofm_desc
-        elif ci.name == "tutorial highlight":
-            func = cmd.highlight
-            desc = cmd.highlight_desc
+        if ci.name == "proteincraft status":
+            func = cmd.status
+            desc = cmd.status_desc
+        elif ci.name == "proteincraft sync":
+            func = cmd.sync
+            desc = cmd.sync_desc
         else:
             raise ValueError("trying to register unknown command: %s" % ci.name)
         if desc.synopsis is None:
