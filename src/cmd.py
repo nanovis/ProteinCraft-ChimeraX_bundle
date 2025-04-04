@@ -7,6 +7,8 @@ from chimerax.core.commands import ColorArg     # Color argument
 from chimerax.core.commands import IntArg       # Integer argument
 from chimerax.core.commands import EmptyArg     # Empty argument
 from chimerax.core.commands import Or, Bounded  # Argument modifiers
+from chimerax.atomic import Structure           # Structure model type
+import json                                     # For JSON formatting
 
 
 # ==========================================================================
@@ -19,8 +21,22 @@ def status(session):
 
     # ``session`` - ``chimerax.core.session.Session`` instance
     
-    # For now, just print the command itself
-    session.logger.info("proteincraft status")
+    # Get all open structure models
+    mols = session.models.list(type=Structure)
+    
+    # Create a dictionary with file paths as keys
+    mol_dict = {}
+    for mol in mols:
+        if hasattr(mol, 'filename') and mol.filename:
+            mol_dict[mol.filename] = {
+                'id': mol.id_string,
+                'name': mol.name,
+                'display': mol.display
+            }
+    
+    # Convert to JSON and display
+    json_output = json.dumps(mol_dict, indent=2)
+    session.logger.info(json_output)
 
 
 status_desc = CmdDesc()
