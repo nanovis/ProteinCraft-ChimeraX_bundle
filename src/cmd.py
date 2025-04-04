@@ -63,11 +63,31 @@ def sync(session, jsonString=None):
         # Get all open structure models
         mols = session.models.list(type=Structure)
         
-        # Update display state for each model
+        # First, set display to False for all currently open models
         for mol in mols:
             if hasattr(mol, 'filename') and mol.filename:
-                if mol.filename in display_states:
-                    mol.display = display_states[mol.filename]['display']
+                mol.display = False
+        
+        # Process files that should be displayed
+        for filepath, state in display_states.items():
+            if state.get('display', False):  # Only process if display is True
+                # Check if file is already open
+                file_open = False
+                for mol in mols:
+                    if hasattr(mol, 'filename') and mol.filename == filepath:
+                        mol.display = True
+                        file_open = True
+                        break
+                
+                # If file is not open, open it
+                if not file_open:
+                    try:
+                        # Use run_command to open the file
+                        from chimerax.core.commands import run
+                        mol = run(session, f"open {filepath}")
+                        mol.display = True
+                    except Exception as e:
+                        session.logger.error(f"Error opening file {filepath}: {str(e)}")
         
         session.logger.info("Successfully updated model display states")
         
