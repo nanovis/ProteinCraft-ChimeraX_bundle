@@ -86,7 +86,7 @@ def sync(session, jsonString=None):
                 # If file is not open, open it
                 if not file_open:
                     try:
-                        mol = run(session, f"open {filepath}")
+                        mol = run(session, f"open {filepath}")[0]
                         mol.display = True
                         # Show sequence viewer for all chains
                         run(session, f"sequence chain #{mol.id_string}/A")
