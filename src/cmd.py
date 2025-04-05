@@ -10,7 +10,7 @@ from chimerax.core.commands import StringArg    # String argument
 from chimerax.core.commands import Or, Bounded  # Argument modifiers
 from chimerax.atomic import Structure           # Structure model type
 import json                                     # For JSON formatting
-
+from chimerax.core.commands import run
 
 # ==========================================================================
 # Functions and descriptions for registering using ChimeraX bundle API
@@ -76,16 +76,21 @@ def sync(session, jsonString=None):
                 for mol in mols:
                     if hasattr(mol, 'filename') and mol.filename == filepath:
                         mol.display = True
+                        # Show sequence viewer for all chains
+                        run(session, f"sequence chain #{mol.id_string}/A")
+                        run(session, f"sequence chain #{mol.id_string}/B")
+
                         file_open = True
                         break
                 
                 # If file is not open, open it
                 if not file_open:
                     try:
-                        # Use run_command to open the file
-                        from chimerax.core.commands import run
                         mol = run(session, f"open {filepath}")
                         mol.display = True
+                        # Show sequence viewer for all chains
+                        run(session, f"sequence chain #{mol.id_string}/A")
+                        run(session, f"sequence chain #{mol.id_string}/B")
                     except Exception as e:
                         session.logger.error(f"Error opening file {filepath}: {str(e)}")
         
