@@ -46,7 +46,7 @@ status_desc = CmdDesc()
 # For the "status" command, we don't have any required or optional arguments for now.
 
 
-def sync(session, jsonString=None):
+def sync_mol(session, jsonString=None):
     """Synchronize with ProteinCraft."""
 
     # ``session`` - ``chimerax.core.session.Session`` instance
@@ -102,9 +102,53 @@ def sync(session, jsonString=None):
         session.logger.error(f"Error updating model display states: {str(e)}")
 
 
-sync_desc = CmdDesc(keyword=[("jsonString", StringArg)])
+sync_mol_desc = CmdDesc(keyword=[("jsonString", StringArg)])
 
 # CmdDesc contains the command description.
 # For the "sync" command, we have one optional argument:
 #   ``jsonString`` - string (optional), default: None
+
+
+def sync_bonds(session, jsonString=None):
+    """Synchronize bonds with ChimeraX using the pbond command."""
+
+    if jsonString is None:
+        session.logger.warning("No JSON string provided for bond synchronization")
+        return
+
+    try:
+        # Parse the JSON string
+        bond_data = json.loads(jsonString)
+
+        # Iterate over each bond and create a pseudobond
+        for bond in bond_data:
+            chain1 = bond.get('chain1')
+            pos1 = bond.get('pos1')
+            chain2 = bond.get('chain2')
+            pos2 = bond.get('pos2')
+            atom1 = bond.get('atom1')
+            atom2 = bond.get('atom2')
+
+            if all([chain1, pos1, chain2, pos2, atom1, atom2]):
+                # Format atom specifications for ChimeraX
+                residue1 = f"#1/{chain1}:{pos1}"  # Using CA atom for residue
+                residue2 = f"#1/{chain2}:{pos2}"  # Using CA atom for residue
+                # Show atoms
+                run(session, f"show {residue1} atoms")
+                run(session, f"show {residue2} atoms")
+                # Construct the pbond command
+                pbond_command = f"pbond {residue1}@{atom1} {residue2}@{atom2} color gold radius 0.2"
+                run(session, pbond_command)
+                # Color the atoms
+                run(session, f"color {residue1} red")
+                run(session, f"color {residue2} red")
+
+        session.logger.info("Successfully synchronized bonds with ChimeraX")
+
+    except json.JSONDecodeError:
+        session.logger.error("Invalid JSON string provided for bond synchronization")
+    except Exception as e:
+        session.logger.error(f"Error synchronizing bonds: {str(e)}")
+
+sync_bonds_desc = CmdDesc(keyword=[("jsonString", StringArg)])
 
