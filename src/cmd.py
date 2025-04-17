@@ -52,15 +52,17 @@ def _process_bonds(session, model, bonds):
             # Show atoms
             run(session, f"show {residue1} atoms")
             run(session, f"show {residue2} atoms")
+            run(session, f"style {residue1} ball")
+            run(session, f"style {residue2} ball")
             
             # Construct the pbond command with appropriate color based on interaction type
             color = "gold"  # default color
             if "HBOND" in interaction:
                 color = "blue"
             elif "VDW" in interaction:
-                color = "green"
+                color = "gray"
                 
-            pbond_command = f"pbond {residue1}@{atom1} {residue2}@{atom2} color {color} radius 0.2"
+            pbond_command = f"pbond {residue1}@{atom1} {residue2}@{atom2} color {color} radius 0.1 dashes 4"
             run(session, pbond_command)
             
             # Color the atoms
