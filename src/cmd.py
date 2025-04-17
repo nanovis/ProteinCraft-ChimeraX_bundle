@@ -13,19 +13,67 @@ import json                                     # For JSON formatting
 from chimerax.core.commands import run
 
 # ==========================================================================
-# Functions and descriptions for registering using ChimeraX bundle API
+# Helper functions
 # ==========================================================================
 
+def _get_model_by_filename(session, filename):
+    """Get a model by its filename."""
+    mols = session.models.list(type=Structure)
+    for mol in mols:
+        if hasattr(mol, 'filename') and mol.filename == filename:
+            return mol
+    return None
+
+def _open_model(session, filepath):
+    """Open a model file and return the model."""
+    try:
+        return run(session, f"open {filepath}")[0]
+    except Exception as e:
+        session.logger.error(f"Error opening file {filepath}: {str(e)}")
+        return None
+
+def _process_bonds(session, model, bonds):
+    """Process and display bonds for a model."""
+    if not bonds:
+        return
+        
+    for bond in bonds:
+        atom1 = bond.get('atom1')
+        atom2 = bond.get('atom2')
+        res1 = bond.get('res1')
+        res2 = bond.get('res2')
+        interaction = bond.get('interaction', '')
+        
+        if all([atom1, atom2, res1, res2]):
+            # Format atom specifications for ChimeraX
+            residue1 = f"#1/A:{res1}"  # Using chain A as default
+            residue2 = f"#1/A:{res2}"  # Using chain A as default
+            
+            # Show atoms
+            run(session, f"show {residue1} atoms")
+            run(session, f"show {residue2} atoms")
+            
+            # Construct the pbond command with appropriate color based on interaction type
+            color = "gold"  # default color
+            if "HBOND" in interaction:
+                color = "blue"
+            elif "VDW" in interaction:
+                color = "green"
+                
+            pbond_command = f"pbond {residue1}@{atom1} {residue2}@{atom2} color {color} radius 0.2"
+            run(session, pbond_command)
+            
+            # Color the atoms
+            run(session, f"color {residue1} red")
+            run(session, f"color {residue2} red")
+
+# ==========================================================================
+# Main command functions
+# ==========================================================================
 
 def status(session):
     """Display the current status of ProteinCraft."""
-
-    # ``session`` - ``chimerax.core.session.Session`` instance
-    
-    # Get all open structure models
     mols = session.models.list(type=Structure)
-    
-    # Create a dictionary with file paths as keys
     mol_dict = {}
     for mol in mols:
         if hasattr(mol, 'filename') and mol.filename:
@@ -34,24 +82,13 @@ def status(session):
                 'name': mol.name,
                 'display': mol.display
             }
-    
-    # Convert to JSON and display
     json_output = json.dumps(mol_dict, indent=2)
     session.logger.info(json_output)
 
-
 status_desc = CmdDesc()
-
-# CmdDesc contains the command description.
-# For the "status" command, we don't have any required or optional arguments for now.
-
 
 def sync(session, jsonString=None):
     """Synchronize with ProteinCraft using a JSON string."""
-
-    # ``session`` - ``chimerax.core.session.Session`` instance
-    # ``jsonString`` - string, JSON string containing model display states
-    
     if jsonString is None:
         session.logger.warning("No JSON string provided")
         return
@@ -72,22 +109,19 @@ def sync(session, jsonString=None):
         for filepath, state in display_states.items():
             if state.get('display', False):  # Only process if display is True
                 # Check if file is already open
-                file_open = False
-                for mol in mols:
-                    if hasattr(mol, 'filename') and mol.filename == filepath:
-                        mol.display = True
-                        file_open = True
-                        break
+                mol = _get_model_by_filename(session, filepath)
                 
-                # If file is not open, open it
-                if not file_open:
-                    try:
-                        mol = run(session, f"open {filepath}")[0]
-                        mol.display = True
-                    except Exception as e:
-                        session.logger.error(f"Error opening file {filepath}: {str(e)}")
+                if mol is None:
+                    # If file is not open, open it
+                    mol = _open_model(session, filepath)
+                
+                if mol:
+                    mol.display = True
+                    # Process bonds if they exist
+                    if 'bonds' in state:
+                        _process_bonds(session, mol, state['bonds'])
         
-        session.logger.info("Successfully updated model display states")
+        session.logger.info("Successfully updated model display states and bonds")
         
         # Orient the view after updating models
         run(session, "view orient")
@@ -97,54 +131,5 @@ def sync(session, jsonString=None):
     except Exception as e:
         session.logger.error(f"Error updating model display states: {str(e)}")
 
-
 sync_desc = CmdDesc(keyword=[("jsonString", StringArg)])
-
-# CmdDesc contains the command description.
-# For the "sync" command, we have one optional argument:
-#   ``jsonString`` - string (optional), default: None
-
-
-def sync_bonds(session, jsonString=None):
-    """Synchronize bonds with ChimeraX using the pbond command."""
-
-    if jsonString is None:
-        session.logger.warning("No JSON string provided for bond synchronization")
-        return
-
-    try:
-        # Parse the JSON string
-        bond_data = json.loads(jsonString)
-
-        # Iterate over each bond and create a pseudobond
-        for bond in bond_data:
-            chain1 = bond.get('chain1')
-            pos1 = bond.get('pos1')
-            chain2 = bond.get('chain2')
-            pos2 = bond.get('pos2')
-            atom1 = bond.get('atom1')
-            atom2 = bond.get('atom2')
-
-            if all([chain1, pos1, chain2, pos2, atom1, atom2]):
-                # Format atom specifications for ChimeraX
-                residue1 = f"#1/{chain1}:{pos1}"  # Using CA atom for residue
-                residue2 = f"#1/{chain2}:{pos2}"  # Using CA atom for residue
-                # Show atoms
-                run(session, f"show {residue1} atoms")
-                run(session, f"show {residue2} atoms")
-                # Construct the pbond command
-                pbond_command = f"pbond {residue1}@{atom1} {residue2}@{atom2} color gold radius 0.2"
-                run(session, pbond_command)
-                # Color the atoms
-                run(session, f"color {residue1} red")
-                run(session, f"color {residue2} red")
-
-        session.logger.info("Successfully synchronized bonds with ChimeraX")
-
-    except json.JSONDecodeError:
-        session.logger.error("Invalid JSON string provided for bond synchronization")
-    except Exception as e:
-        session.logger.error(f"Error synchronizing bonds: {str(e)}")
-
-sync_bonds_desc = CmdDesc(keyword=[("jsonString", StringArg)])
 
