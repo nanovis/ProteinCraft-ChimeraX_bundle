@@ -66,8 +66,8 @@ def _process_bonds(session, model, bonds):
             run(session, pbond_command)
             
             # Color the atoms
-            run(session, f"color {residue1} red")
-            run(session, f"color {residue2} red")
+            run(session, f"color {residue1} red target cartoons")
+            run(session, f"color {residue2} red target cartoons")
 
 # ==========================================================================
 # Main command functions
