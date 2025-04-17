@@ -34,9 +34,9 @@ class _MyAPI(BundleAPI):
         if ci.name == "proteincraft status":
             func = cmd.status
             desc = cmd.status_desc
-        elif ci.name == "proteincraft sync_mol":
-            func = cmd.sync_mol
-            desc = cmd.sync_mol_desc
+        elif ci.name == "proteincraft sync":
+            func = cmd.sync
+            desc = cmd.sync_desc
         elif ci.name == "proteincraft sync_bonds":
             func = cmd.sync_bonds
             desc = cmd.sync_bonds_desc

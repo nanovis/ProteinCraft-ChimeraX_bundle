@@ -46,8 +46,8 @@ status_desc = CmdDesc()
 # For the "status" command, we don't have any required or optional arguments for now.
 
 
-def sync_mol(session, jsonString=None):
-    """Synchronize with ProteinCraft."""
+def sync(session, jsonString=None):
+    """Synchronize with ProteinCraft using a JSON string."""
 
     # ``session`` - ``chimerax.core.session.Session`` instance
     # ``jsonString`` - string, JSON string containing model display states
@@ -76,10 +76,6 @@ def sync_mol(session, jsonString=None):
                 for mol in mols:
                     if hasattr(mol, 'filename') and mol.filename == filepath:
                         mol.display = True
-                        # Show sequence viewer for all chains
-                        run(session, f"sequence chain #{mol.id_string}/A")
-                        run(session, f"sequence chain #{mol.id_string}/B")
-
                         file_open = True
                         break
                 
@@ -88,9 +84,6 @@ def sync_mol(session, jsonString=None):
                     try:
                         mol = run(session, f"open {filepath}")[0]
                         mol.display = True
-                        # Show sequence viewer for all chains
-                        run(session, f"sequence chain #{mol.id_string}/A")
-                        run(session, f"sequence chain #{mol.id_string}/B")
                     except Exception as e:
                         session.logger.error(f"Error opening file {filepath}: {str(e)}")
         
@@ -102,7 +95,7 @@ def sync_mol(session, jsonString=None):
         session.logger.error(f"Error updating model display states: {str(e)}")
 
 
-sync_mol_desc = CmdDesc(keyword=[("jsonString", StringArg)])
+sync_desc = CmdDesc(keyword=[("jsonString", StringArg)])
 
 # CmdDesc contains the command description.
 # For the "sync" command, we have one optional argument:

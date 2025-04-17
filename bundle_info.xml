@@ -46,8 +46,8 @@ and "proteincraft sync" to synchronize with ProteinCraft.
     <!-- Register two commands for ProteinCraft -->
     <ChimeraXClassifier>ChimeraX :: Command :: proteincraft status :: General ::
       Display ProteinCraft status</ChimeraXClassifier>
-    <ChimeraXClassifier>ChimeraX :: Command :: proteincraft sync_mol :: General ::
-      Synchronize with ProteinCraft</ChimeraXClassifier>
+    <ChimeraXClassifier>ChimeraX :: Command :: proteincraft sync :: General ::
+      Synchronize with ProteinCraft using JSON</ChimeraXClassifier>
     <ChimeraXClassifier>ChimeraX :: Command :: proteincraft sync_bonds :: General ::
       Synchronize bonds with ProteinCraft</ChimeraXClassifier>
   </Classifiers>
