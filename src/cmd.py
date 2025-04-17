@@ -89,6 +89,9 @@ def sync(session, jsonString=None):
         
         session.logger.info("Successfully updated model display states")
         
+        # Orient the view after updating models
+        run(session, "view orient")
+        
     except json.JSONDecodeError:
         session.logger.error("Invalid JSON string provided")
     except Exception as e:
