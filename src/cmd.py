@@ -46,8 +46,8 @@ def _process_bonds(session, model, bonds):
         
         if all([atom1, atom2, res1, res2]):
             # Format atom specifications for ChimeraX
-            residue1 = f"#1/A:{res1}"  # Using chain A as default
-            residue2 = f"#1/A:{res2}"  # Using chain A as default
+            residue1 = f"#{model.id_string}/A:{res1}"  
+            residue2 = f"#{model.id_string}/B:{res2}"  
             
             # Show atoms
             run(session, f"show {residue1} atoms")
