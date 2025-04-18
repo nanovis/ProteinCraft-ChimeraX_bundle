@@ -29,7 +29,8 @@ def _open_model(session, filepath):
     try:
         model = run(session, f"open {filepath}")[0]
         # Color by chain after opening
-        run(session, f"color #{model.id_string} bychain")
+        run(session, f"color #!{model.id_string} bychain")
+        run(session, f"color #!{model.id_string} byhetero")
         return model
     except Exception as e:
         session.logger.error(f"Error opening file {filepath}: {str(e)}")
