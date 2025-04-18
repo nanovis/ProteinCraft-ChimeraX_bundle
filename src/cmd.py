@@ -41,6 +41,11 @@ def _process_bonds(session, model, bonds):
     if not bonds:
         return
         
+    # Delete existing ProteinCraftBonds submodels
+    for submodel in model.child_models():
+        if submodel.name == "ProteinCraftBonds" or submodel.name == "ProteinCraftMarkers":
+            session.models.close([submodel])
+        
     for bond in bonds:
         atom1 = bond.get('atom1')
         atom2 = bond.get('atom2')
@@ -77,6 +82,9 @@ def _process_bonds(session, model, bonds):
                 marker2 = f"marker #{model.id_string}.43 position {atom2} color gray radius 0.12"
                 marker1_obj = run(session, marker1)
                 marker2_obj = run(session, marker2)
+                marker1_obj.structure.name = "ProteinCraftMarkers"
+                marker2_obj.structure.name = "ProteinCraftMarkers"
+
                 # Use the markers in pbond command
                 pbond_command = f"pbond #{model.id_string}.43:{marker1_obj.serial_number} #{model.id_string}.43:{marker2_obj.serial_number} color {color} radius 0.1 dashes 4 name ProteinCraftBonds"
             else:
@@ -138,6 +146,9 @@ def sync(session, jsonString=None):
                     mol = _open_model(session, filepath)
                 
                 if mol:
+                    run(session, f"color #!{mol.id_string} bychain")
+                    run(session, f"color #!{mol.id_string} byhetero")
+                    run(session, f"hide #!{mol.id_string} atoms")
                     mol.display = True
                     # Process bonds if they exist
                     if 'bonds' in state:
