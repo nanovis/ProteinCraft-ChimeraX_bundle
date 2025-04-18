@@ -45,9 +45,13 @@ def _process_bonds(session, model, bonds):
         interaction = bond.get('interaction', '')
         
         if all([atom1, atom2, res1, res2]):
+            # Parse residue strings to get chain and index
+            chain1, index1 = res1.split(':')[:2]
+            chain2, index2 = res2.split(':')[:2]
+            
             # Format atom specifications for ChimeraX
-            residue1 = f"#{model.id_string}/A:{res1}"  
-            residue2 = f"#{model.id_string}/B:{res2}"  
+            residue1 = f"#{model.id_string}/{chain1}:{index1}"  
+            residue2 = f"#{model.id_string}/{chain2}:{index2}"  
             
             # Show atoms
             run(session, f"show {residue1} atoms")
