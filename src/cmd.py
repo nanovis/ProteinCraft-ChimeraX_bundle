@@ -66,7 +66,11 @@ def _process_bonds(session, model, bonds):
             elif "VDW" in interaction:
                 color = "gray"
                 
-            pbond_command = f"pbond {residue1}@{atom1} {residue2}@{atom2} color {color} radius 0.1 dashes 4"
+            # Check if atom1 and atom2 are coordinates (contain commas)
+            atom1_type = "CA" if ',' in str(atom1) else atom1
+            atom2_type = "CA" if ',' in str(atom2) else atom2
+            
+            pbond_command = f"pbond {residue1}@{atom1_type} {residue2}@{atom2_type} color {color} radius 0.1 dashes 4"
             run(session, pbond_command)
             
             # Color the atoms
