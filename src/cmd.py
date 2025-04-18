@@ -27,7 +27,10 @@ def _get_model_by_filename(session, filename):
 def _open_model(session, filepath):
     """Open a model file and return the model."""
     try:
-        return run(session, f"open {filepath}")[0]
+        model = run(session, f"open {filepath}")[0]
+        # Color by chain after opening
+        run(session, f"color #{model.id_string} bychain")
+        return model
     except Exception as e:
         session.logger.error(f"Error opening file {filepath}: {str(e)}")
         return None
