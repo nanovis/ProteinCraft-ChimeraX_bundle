@@ -107,7 +107,7 @@ def _process_bonds(session, model, bonds):
             atom2 = _get_correct_atom_name(session, model, residue2, atom2)
             
             if not atom1 or not atom2:
-                session.logger.warning(f"Could not find matching atoms for bond between {res1}@{bond.get('atom1')} and {res2}@{bond.get('atom2')}")
+                session.logger.warning(f"Could not find matching atoms for bond between {residue1}@{bond.get('atom1')} and {residue2}@{bond.get('atom2')}")
                 continue
             
             # Show atoms
