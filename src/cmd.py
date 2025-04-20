@@ -215,6 +215,8 @@ def sync(session, jsonString=None):
         
         if success:
             session.logger.info("Successfully updated model display states and bonds")
+        else:
+            session.logger.warning("Failed to process some bonds")
         
     except json.JSONDecodeError:
         session.logger.error("Invalid JSON string provided")
