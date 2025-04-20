@@ -36,6 +36,46 @@ def _open_model(session, filepath):
         session.logger.error(f"Error opening file {filepath}: {str(e)}")
         return None
 
+def _get_correct_atom_name(session, model, residue_spec, atom_name):
+    """Find the correct atom name that ChimeraX recognizes.
+    
+    Args:
+        session: ChimeraX session
+        model: Structure model
+        residue_spec: Residue specification (e.g. "A:1")
+        atom_name: Original atom name to check
+    
+    Returns:
+        str: Correct atom name that exists in ChimeraX, or None if not found
+    """
+    # First try the exact name
+    try:
+        result = run(session, f"select {residue_spec}@{atom_name}")
+        if result and result.num_atoms > 0:
+            run(session, f"~select {residue_spec}@{atom_name}")
+            return atom_name
+    except:
+        pass
+    
+    # Handle cases where last digit moves to beginning (e.g. "HD12" -> "2HD1")
+    if len(atom_name) >= 3 and atom_name[-1].isdigit():
+        # Extract the last digit
+        last_digit = atom_name[-1]
+        # Remove the last digit from the original name
+        base_name = atom_name[:-1]
+        # Create the new name with the digit at the beginning
+        new_name = f"{last_digit}{base_name}"
+        
+        try:
+            result = run(session, f"select {residue_spec}@{new_name}")
+            if result and result.num_atoms > 0:
+                run(session, f"~select {residue_spec}@{new_name}")
+                return new_name
+        except:
+            pass
+    
+    return None
+
 def _process_bonds(session, model, bonds):
     """Process and display bonds for a model."""
     if not bonds:
@@ -61,6 +101,14 @@ def _process_bonds(session, model, bonds):
             # Format atom specifications for ChimeraX
             residue1 = f"#{model.id_string}/{chain1}:{index1}"  
             residue2 = f"#{model.id_string}/{chain2}:{index2}"  
+            
+            # Get correct atom names
+            atom1 = _get_correct_atom_name(session, model, residue1, atom1)
+            atom2 = _get_correct_atom_name(session, model, residue2, atom2)
+            
+            if not atom1 or not atom2:
+                session.logger.warning(f"Could not find matching atoms for bond between {res1}@{bond.get('atom1')} and {res2}@{bond.get('atom2')}")
+                continue
             
             # Show atoms
             run(session, f"show {residue1} atoms")
