@@ -102,14 +102,6 @@ def _process_bonds(session, model, bonds):
             residue1 = f"#{model.id_string}/{chain1}:{index1}"  
             residue2 = f"#{model.id_string}/{chain2}:{index2}"  
             
-            # Get correct atom names
-            atom1 = _get_correct_atom_name(session, model, residue1, atom1)
-            atom2 = _get_correct_atom_name(session, model, residue2, atom2)
-            
-            if not atom1 or not atom2:
-                session.logger.warning(f"Could not find matching atoms for bond between {residue1}@{bond.get('atom1')} and {residue2}@{bond.get('atom2')}")
-                continue
-            
             # Show atoms
             run(session, f"show {residue1} atoms")
             run(session, f"show {residue2} atoms")
@@ -139,6 +131,15 @@ def _process_bonds(session, model, bonds):
                 pbond_command = f"pbond #{model.id_string}.43:{marker1_obj.serial_number} #{model.id_string}.43:{marker2_obj.serial_number} color {color} radius 0.1 dashes 4 name ProteinCraftBonds"
             else:
                 # Use regular atom specifications
+
+                # Get correct atom names
+                atom1 = _get_correct_atom_name(session, model, residue1, atom1)
+                atom2 = _get_correct_atom_name(session, model, residue2, atom2)
+                
+                if not atom1 or not atom2:
+                    session.logger.warning(f"Could not find matching atoms for bond between {residue1}@{bond.get('atom1')} and {residue2}@{bond.get('atom2')}")
+                    continue
+                
                 pbond_command = f"pbond {residue1}@{atom1} {residue2}@{atom2} color {color} radius 0.1 dashes 4 name ProteinCraftBonds"
             
             run(session, pbond_command)
