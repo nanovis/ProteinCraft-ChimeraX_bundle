@@ -77,15 +77,20 @@ def _get_correct_atom_name(session, model, residue_spec, atom_name):
     return None
 
 def _process_bonds(session, model, bonds):
-    """Process and display bonds for a model."""
+    """Process and display bonds for a model.
+    
+    Returns:
+        bool: True if all bonds were processed successfully, False otherwise
+    """
     if not bonds:
-        return
+        return True
         
     # Delete existing ProteinCraftBonds submodels
     for submodel in model.child_models():
         if submodel.name == "ProteinCraftBonds" or submodel.name == "ProteinCraftMarkers":
             session.models.close([submodel])
         
+    success = True
     for bond in bonds:
         atom1 = bond.get('atom1')
         atom2 = bond.get('atom2')
@@ -131,13 +136,13 @@ def _process_bonds(session, model, bonds):
                 pbond_command = f"pbond #{model.id_string}.43:{marker1_obj.serial_number} #{model.id_string}.43:{marker2_obj.serial_number} color {color} radius 0.1 dashes 4 name ProteinCraftBonds"
             else:
                 # Use regular atom specifications
-
                 # Get correct atom names
                 atom1 = _get_correct_atom_name(session, model, residue1, atom1)
                 atom2 = _get_correct_atom_name(session, model, residue2, atom2)
                 
                 if not atom1 or not atom2:
                     session.logger.warning(f"Could not find matching atoms for bond between {residue1}@{bond.get('atom1')} and {residue2}@{bond.get('atom2')}")
+                    success = False
                     continue
                 
                 pbond_command = f"pbond {residue1}@{atom1} {residue2}@{atom2} color {color} radius 0.1 dashes 4 name ProteinCraftBonds"
@@ -147,6 +152,8 @@ def _process_bonds(session, model, bonds):
             # Color the atoms
             run(session, f"color {residue1} red target c")
             run(session, f"color {residue2} red target c")
+    
+    return success
 
 # ==========================================================================
 # Main command functions
@@ -186,6 +193,7 @@ def sync(session, jsonString=None):
             if hasattr(mol, 'filename') and mol.filename:
                 mol.display = False
         
+        success = True
         # Process files that should be displayed
         for filepath, state in display_states.items():
             if state.get('display', False):  # Only process if display is True
@@ -203,9 +211,10 @@ def sync(session, jsonString=None):
                     mol.display = True
                     # Process bonds if they exist
                     if 'bonds' in state:
-                        _process_bonds(session, mol, state['bonds'])
+                        success = _process_bonds(session, mol, state['bonds'])
         
-        session.logger.info("Successfully updated model display states and bonds")
+        if success:
+            session.logger.info("Successfully updated model display states and bonds")
         
     except json.JSONDecodeError:
         session.logger.error("Invalid JSON string provided")
