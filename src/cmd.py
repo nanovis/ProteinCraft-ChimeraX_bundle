@@ -67,6 +67,8 @@ def _process_bonds(session, model, bonds):
             run(session, f"show {residue2} atoms")
             run(session, f"style {residue1} ball")
             run(session, f"style {residue2} ball")
+            run(session, f"cartoon {residue1} suppressBackboneDisplay false")
+            run(session, f"cartoon {residue2} suppressBackboneDisplay false")
             
             # Construct the pbond command with appropriate color based on interaction type
             color = "gold"  # default color
