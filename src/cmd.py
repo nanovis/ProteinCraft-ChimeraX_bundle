@@ -11,6 +11,7 @@ from chimerax.core.commands import Or, Bounded  # Argument modifiers
 from chimerax.atomic import Structure           # Structure model type
 import json                                     # For JSON formatting
 from chimerax.core.commands import run
+from .ProteinCraftData import ProteinCraftData  # Import the new class
 
 # ==========================================================================
 # Helper functions
@@ -182,6 +183,9 @@ def sync(session, jsonString=None):
         return
     
     try:
+        # Store the JSON string
+        ProteinCraftData.get_instance().set_json_string(jsonString)
+        
         # Parse the JSON string
         display_states = json.loads(jsonString)
         
@@ -224,4 +228,14 @@ def sync(session, jsonString=None):
         session.logger.error(f"Error updating model display states: {str(e)}")
 
 sync_desc = CmdDesc(keyword=[("jsonString", StringArg)])
+
+def printJson(session):
+    """Print the stored JSON string from ProteinCraftData."""
+    json_string = ProteinCraftData.get_instance().get_json_string()
+    if json_string is None:
+        session.logger.warning("No JSON string has been stored yet")
+    else:
+        session.logger.info(json_string)
+
+printJson_desc = CmdDesc()
 

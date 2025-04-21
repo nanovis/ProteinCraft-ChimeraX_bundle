@@ -40,6 +40,9 @@ class _MyAPI(BundleAPI):
         elif ci.name == "proteincraft sync_bonds":
             func = cmd.sync_bonds
             desc = cmd.sync_bonds_desc
+        elif ci.name == "proteincraft printJson":
+            func = cmd.printJson
+            desc = cmd.printJson_desc
         else:
             raise ValueError("trying to register unknown command: %s" % ci.name)
         if desc.synopsis is None:

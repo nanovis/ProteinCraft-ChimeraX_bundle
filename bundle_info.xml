@@ -50,6 +50,8 @@ and "proteincraft sync" to synchronize with ProteinCraft.
       Synchronize with ProteinCraft using JSON</ChimeraXClassifier>
     <ChimeraXClassifier>ChimeraX :: Command :: proteincraft sync_bonds :: General ::
       Synchronize bonds with ProteinCraft</ChimeraXClassifier>
+    <ChimeraXClassifier>ChimeraX :: Command :: proteincraft printJson :: General ::
+      Print the stored JSON string from ProteinCraft</ChimeraXClassifier>
   </Classifiers>
 
 </BundleInfo>
