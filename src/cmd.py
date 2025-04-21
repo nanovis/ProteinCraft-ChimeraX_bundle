@@ -106,6 +106,10 @@ def _process_bonds(session, model, bonds):
             # Format atom specifications for ChimeraX
             residue1 = f"#{model.id_string}/{chain1}:{index1}"  
             residue2 = f"#{model.id_string}/{chain2}:{index2}"  
+
+            # Color the residues cartoon
+            run(session, f"color {residue1} red target c")
+            run(session, f"color {residue2} red target c")
             
             # Show atoms
             run(session, f"show {residue1} atoms")
@@ -149,10 +153,6 @@ def _process_bonds(session, model, bonds):
             
             run(session, pbond_command)
             
-            # Color the atoms
-            run(session, f"color {residue1} red target c")
-            run(session, f"color {residue2} red target c")
-    
     return success
 
 # ==========================================================================
