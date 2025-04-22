@@ -91,6 +91,21 @@ def _process_bonds(session, model, bonds):
     if not bonds:
         return True
         
+    # Get current bond detail type
+    bond_detail = ProteinCraftData.get_instance().get_bond_detail()
+
+    print("Length of bonds: ", len(bonds))
+    
+    # For AUTO mode, determine if we should show CA or ATOM based on bond count
+    if bond_detail == BondDetailType.AUTO:
+        print("Bond detail is AUTO")
+        if len(bonds) > 3:
+            bond_detail = BondDetailType.CA
+        else:
+            bond_detail = BondDetailType.ATOM
+
+    print("Bond detail is now: ", bond_detail)
+    
     success = True
     for bond in bonds:
         atom1 = bond.get('atom1')
@@ -111,14 +126,6 @@ def _process_bonds(session, model, bonds):
             # Color the residues cartoon
             run(session, f"color {residue1} red target c")
             run(session, f"color {residue2} red target c")
-            
-            # Show atoms
-            run(session, f"show {residue1} atoms")
-            run(session, f"show {residue2} atoms")
-            run(session, f"style {residue1} ball")
-            run(session, f"style {residue2} ball")
-            run(session, f"cartoon {residue1} suppressBackboneDisplay false")
-            run(session, f"cartoon {residue2} suppressBackboneDisplay false")
             
             # Construct the pbond command with appropriate color based on interaction type
             color = "gold"  # default color
@@ -146,22 +153,38 @@ def _process_bonds(session, model, bonds):
             else:
                 color = "gold"            # fallback
             
-            # Handle atom specifications
-            if ',' in str(atom1):
-                marker1 = f"marker #{model.id_string}.43 position {atom1} color gray radius 0.12"
-                marker1_obj = run(session, marker1)
-                marker1_obj.structure.name = "ProteinCraftMarkers"
-                atom1_spec = f"#{model.id_string}.43:{marker1_obj.serial_number}"
+            # Handle atom specifications based on bond detail type
+            if bond_detail == BondDetailType.CA:
+                # For CA mode, always use CA atoms
+                atom1_spec = f"{residue1}@CA"
+                atom2_spec = f"{residue2}@CA"
+                print("Atom1 spec: ", atom1_spec)
+                print("Atom2 spec: ", atom2_spec)
             else:
-                atom1_spec = f"{residue1}@{atom1}"
-            
-            if ',' in str(atom2):
-                marker2 = f"marker #{model.id_string}.43 position {atom2} color gray radius 0.12"
-                marker2_obj = run(session, marker2)
-                marker2_obj.structure.name = "ProteinCraftMarkers"
-                atom2_spec = f"#{model.id_string}.43:{marker2_obj.serial_number}"
-            else:
-                atom2_spec = f"{residue2}@{atom2}"
+                # For ATOM mode, use the specified atoms
+                if ',' in str(atom1):
+                    marker1 = f"marker #{model.id_string}.43 position {atom1} color gray radius 0.12"
+                    marker1_obj = run(session, marker1)
+                    marker1_obj.structure.name = "ProteinCraftMarkers"
+                    atom1_spec = f"#{model.id_string}.43:{marker1_obj.serial_number}"
+                else:
+                    atom1_spec = f"{residue1}@{atom1}"
+                
+                if ',' in str(atom2):
+                    marker2 = f"marker #{model.id_string}.43 position {atom2} color gray radius 0.12"
+                    marker2_obj = run(session, marker2)
+                    marker2_obj.structure.name = "ProteinCraftMarkers"
+                    atom2_spec = f"#{model.id_string}.43:{marker2_obj.serial_number}"
+                else:
+                    atom2_spec = f"{residue2}@{atom2}"
+
+                # Show atoms
+                run(session, f"show {residue1} atoms")
+                run(session, f"show {residue2} atoms")
+                run(session, f"style {residue1} ball")
+                run(session, f"style {residue2} ball")
+                run(session, f"cartoon {residue1} suppressBackboneDisplay false")
+                run(session, f"cartoon {residue2} suppressBackboneDisplay false")
 
             # Use the appropriate specifications in pbond command
             pbond_command = f"pbond {atom1_spec} {atom2_spec} color {color} radius 0.1 dashes 4 name ProteinCraftBonds"
