@@ -93,18 +93,13 @@ def _process_bonds(session, model, bonds):
         
     # Get current bond detail type
     bond_detail = ProteinCraftData.get_instance().get_bond_detail()
-
-    print("Length of bonds: ", len(bonds))
     
     # For AUTO mode, determine if we should show CA or ATOM based on bond count
     if bond_detail == BondDetailType.AUTO:
-        print("Bond detail is AUTO")
         if len(bonds) > 3:
             bond_detail = BondDetailType.CA
         else:
             bond_detail = BondDetailType.ATOM
-
-    print("Bond detail is now: ", bond_detail)
     
     success = True
     for bond in bonds:
@@ -158,8 +153,8 @@ def _process_bonds(session, model, bonds):
                 # For CA mode, always use CA atoms
                 atom1_spec = f"{residue1}@CA"
                 atom2_spec = f"{residue2}@CA"
-                print("Atom1 spec: ", atom1_spec)
-                print("Atom2 spec: ", atom2_spec)
+                run(session, f"cartoon {residue1} suppressBackboneDisplay true")
+                run(session, f"cartoon {residue2} suppressBackboneDisplay true")
             else:
                 # For ATOM mode, use the specified atoms
                 if ',' in str(atom1):
