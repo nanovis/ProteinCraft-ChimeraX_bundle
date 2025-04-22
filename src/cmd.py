@@ -307,6 +307,11 @@ def bondDetail(session, detail_type=None):
             new_type = BondDetailType(detail_type.upper())
             ProteinCraftData.get_instance().set_bond_detail(new_type)
             session.logger.info(f"Bond detail type set to: {new_type.value}")
+            
+            # If there's a stored JSON string, run sync command
+            json_string = ProteinCraftData.get_instance().get_json_string()
+            if json_string:
+                sync(session, jsonString=json_string)
         except ValueError:
             session.logger.error(f"Invalid bond detail type. Must be one of: {', '.join(t.value for t in BondDetailType)}")
 
