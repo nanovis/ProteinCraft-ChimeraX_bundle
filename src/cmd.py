@@ -127,10 +127,29 @@ def _process_bonds(session, model, bonds):
             
             # Construct the pbond command with appropriate color based on interaction type
             color = "gold"  # default color
-            if "HBOND" in interaction:
-                color = "blue"
-            elif "VDW" in interaction:
-                color = "gray"
+            interaction_upper = interaction.upper()
+            if "HBOND" in interaction_upper:
+                color = "#1f77b4"         # H‑Bond (light blue)
+            elif "PIPISTACK" in interaction_upper:
+                color = "#ff7f0e"         # π‑π Stack (orange)
+            elif "PICATION" in interaction_upper:
+                color = "#2ca02c"         # π‑Cation (green)
+            elif "IONIC" in interaction_upper:
+                color = "#d62728"         # Ionic (red)
+            elif "DISULPHIDE" in interaction_upper:
+                color = "#9467bd"         # Disulphide (purple)
+            elif "METAL" in interaction_upper:
+                color = "#e377c2"         # Metal Coordination (pink)
+            elif "PIH" in interaction_upper:  # covers π‑H Bond
+                color = "#bcbd22"         # π‑H Bond (yellow‑green)
+            elif "HALOGEN" in interaction_upper:
+                color = "#17becf"         # Halogen (cyan)
+            elif "VDW" in interaction_upper:
+                color = "#7f7f7f"         # van der Waals (gray)
+            elif "IAC" in interaction_upper:
+                color = "#8c564b"         # IAC (brown)
+            else:
+                color = "gold"            # fallback
             
             # Handle atom specifications
             if ',' in str(atom1):
