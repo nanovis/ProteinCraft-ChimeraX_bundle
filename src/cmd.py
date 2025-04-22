@@ -35,8 +35,10 @@ def _open_model(session, filepath):
         
         model = run(session, f"open {filepath} format {format_str}")[0]
         # Color by chain after opening
-        run(session, f"color #!{model.id_string} bychain")
-        run(session, f"color #!{model.id_string} byhetero")
+        run(session, 
+            f"color #!{model.id_string} bychain; "
+            f"color #!{model.id_string} byhetero",
+            log=False)
         return model
     except Exception as e:
         session.logger.error(f"Error opening file {filepath}: {str(e)}")
@@ -56,9 +58,9 @@ def _get_correct_atom_name(session, model, residue_spec, atom_name):
     """
     # First try the exact name
     try:
-        result = run(session, f"select {residue_spec}@{atom_name}")
+        result = run(session, f"select {residue_spec}@{atom_name}", log=False)
         if result and result.num_atoms > 0:
-            run(session, f"~select {residue_spec}@{atom_name}")
+            run(session, f"~select {residue_spec}@{atom_name}", log=False)
             return atom_name
     except:
         pass
@@ -73,9 +75,9 @@ def _get_correct_atom_name(session, model, residue_spec, atom_name):
         new_name = f"{last_digit}{base_name}"
         
         try:
-            result = run(session, f"select {residue_spec}@{new_name}")
+            result = run(session, f"select {residue_spec}@{new_name}", log=False)
             if result and result.num_atoms > 0:
-                run(session, f"~select {residue_spec}@{new_name}")
+                run(session, f"~select {residue_spec}@{new_name}", log=False)
                 return new_name
         except:
             pass
@@ -122,8 +124,10 @@ def _process_bonds(session, model, bonds):
             residue2 = f"#{model.id_string}/{chain2}:{index2}"  
 
             # Color the residues cartoon
-            run(session, f"color {residue1} red target c")
-            run(session, f"color {residue2} red target c")
+            run(session, 
+                f"color {residue1} red target c; "
+                f"color {residue2} red target c",
+                log=False)
             
             # Construct the pbond command with appropriate color based on interaction type
             color = "gold"  # default color
@@ -158,8 +162,10 @@ def _process_bonds(session, model, bonds):
                 # For CA mode, always use CA atoms
                 atom1_spec = f"{residue1}@CA"
                 atom2_spec = f"{residue2}@CA"
-                run(session, f"cartoon {residue1} suppressBackboneDisplay true")
-                run(session, f"cartoon {residue2} suppressBackboneDisplay true")
+                run(session, 
+                    f"cartoon {residue1} suppressBackboneDisplay true; "
+                    f"cartoon {residue2} suppressBackboneDisplay true",
+                    log=False)
 
                 # Create a unique key for the bond pair
                 pair_key = f"{residue1}-{residue2}"
@@ -177,7 +183,7 @@ def _process_bonds(session, model, bonds):
                 # For ATOM mode, use the specified atoms
                 if ',' in str(atom1):
                     marker1 = f"marker #{model.id_string}.43 position {atom1} color gray radius 0.12"
-                    marker1_obj = run(session, marker1)
+                    marker1_obj = run(session, marker1, log=False)
                     marker1_obj.structure.name = "ProteinCraftMarkers"
                     atom1_spec = f"#{model.id_string}.43:{marker1_obj.serial_number}"
                 else:
@@ -185,23 +191,25 @@ def _process_bonds(session, model, bonds):
                 
                 if ',' in str(atom2):
                     marker2 = f"marker #{model.id_string}.43 position {atom2} color gray radius 0.12"
-                    marker2_obj = run(session, marker2)
+                    marker2_obj = run(session, marker2, log=False)
                     marker2_obj.structure.name = "ProteinCraftMarkers"
                     atom2_spec = f"#{model.id_string}.43:{marker2_obj.serial_number}"
                 else:
                     atom2_spec = f"{residue2}@{atom2}"
 
                 # Show atoms
-                run(session, f"show {residue1} atoms")
-                run(session, f"show {residue2} atoms")
-                run(session, f"style {residue1} ball")
-                run(session, f"style {residue2} ball")
-                run(session, f"cartoon {residue1} suppressBackboneDisplay false")
-                run(session, f"cartoon {residue2} suppressBackboneDisplay false")
+                run(session, 
+                    f"show {residue1} atoms; "
+                    f"show {residue2} atoms; "
+                    f"style {residue1} ball; "
+                    f"style {residue2} ball; "
+                    f"cartoon {residue1} suppressBackboneDisplay false; "
+                    f"cartoon {residue2} suppressBackboneDisplay false",
+                    log=False)
 
             # Use the appropriate specifications in pbond command
             pbond_command = f"pbond {atom1_spec} {atom2_spec} color {color} radius {radius} dashes 4 name ProteinCraftBonds"
-            run(session, pbond_command)
+            run(session, pbond_command, log=False)
             
     return success
 
@@ -263,15 +271,17 @@ def sync(session, jsonString=None):
                     mol = _open_model(session, filepath)
                 
                 if mol:
-                    run(session, f"color #!{mol.id_string} bychain")
-                    run(session, f"color #!{mol.id_string} byhetero")
-                    run(session, f"hide #!{mol.id_string} atoms")
+                    run(session, 
+                        f"color #!{mol.id_string} bychain; "
+                        f"color #!{mol.id_string} byhetero; "
+                        f"hide #!{mol.id_string} atoms",
+                        log=False)
                     mol.display = True
                     # Process bonds if they exist
                     if 'bonds' in state:
                         success = _process_bonds(session, mol, state['bonds'])
         
-        run(session, "cartoon tether opacity 0")
+        run(session, "cartoon tether opacity 0", log=False)
         
         if success:
             session.logger.info("Successfully updated model display states and bonds")
