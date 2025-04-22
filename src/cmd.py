@@ -28,7 +28,7 @@ def _get_model_by_filename(session, filename):
 def _open_model(session, filepath):
     """Open a model file and return the model."""
     try:
-        model = run(session, f"open {filepath}")[0]
+        model = run(session, f"open {filepath} format pdb")[0]
         # Color by chain after opening
         run(session, f"color #!{model.id_string} bychain")
         run(session, f"color #!{model.id_string} byhetero")
@@ -141,14 +141,16 @@ def _process_bonds(session, model, bonds):
                 pbond_command = f"pbond #{model.id_string}.43:{marker1_obj.serial_number} #{model.id_string}.43:{marker2_obj.serial_number} color {color} radius 0.1 dashes 4 name ProteinCraftBonds"
             else:
                 # Use regular atom specifications
-                # Get correct atom names
-                atom1 = _get_correct_atom_name(session, model, residue1, atom1)
-                atom2 = _get_correct_atom_name(session, model, residue2, atom2)
                 
-                if not atom1 or not atom2:
-                    session.logger.warning(f"Could not find matching atoms for bond between {residue1}@{bond.get('atom1')} and {residue2}@{bond.get('atom2')}")
-                    success = False
-                    continue
+                # Using pdb_ring now, no need to get correct atom names
+                # # Get correct atom names
+                # atom1 = _get_correct_atom_name(session, model, residue1, atom1)
+                # atom2 = _get_correct_atom_name(session, model, residue2, atom2)
+                
+                # if not atom1 or not atom2:
+                #     session.logger.warning(f"Could not find matching atoms for bond between {residue1}@{bond.get('atom1')} and {residue2}@{bond.get('atom2')}")
+                #     success = False
+                #     continue
                 
                 pbond_command = f"pbond {residue1}@{atom1} {residue2}@{atom2} color {color} radius 0.1 dashes 4 name ProteinCraftBonds"
             
