@@ -132,33 +132,25 @@ def _process_bonds(session, model, bonds):
             elif "VDW" in interaction:
                 color = "gray"
             
-            # Handle coordinate-based atoms
-            if ',' in str(atom1) and ',' in str(atom2):
-                # Create markers for coordinate-based atoms
+            # Handle atom specifications
+            if ',' in str(atom1):
                 marker1 = f"marker #{model.id_string}.43 position {atom1} color gray radius 0.12"
-                marker2 = f"marker #{model.id_string}.43 position {atom2} color gray radius 0.12"
                 marker1_obj = run(session, marker1)
-                marker2_obj = run(session, marker2)
                 marker1_obj.structure.name = "ProteinCraftMarkers"
-                marker2_obj.structure.name = "ProteinCraftMarkers"
-
-                # Use the markers in pbond command
-                pbond_command = f"pbond #{model.id_string}.43:{marker1_obj.serial_number} #{model.id_string}.43:{marker2_obj.serial_number} color {color} radius 0.1 dashes 4 name ProteinCraftBonds"
+                atom1_spec = f"#{model.id_string}.43:{marker1_obj.serial_number}"
             else:
-                # Use regular atom specifications
-                
-                # Using pdb_ring now, no need to get correct atom names
-                # # Get correct atom names
-                # atom1 = _get_correct_atom_name(session, model, residue1, atom1)
-                # atom2 = _get_correct_atom_name(session, model, residue2, atom2)
-                
-                # if not atom1 or not atom2:
-                #     session.logger.warning(f"Could not find matching atoms for bond between {residue1}@{bond.get('atom1')} and {residue2}@{bond.get('atom2')}")
-                #     success = False
-                #     continue
-                
-                pbond_command = f"pbond {residue1}@{atom1} {residue2}@{atom2} color {color} radius 0.1 dashes 4 name ProteinCraftBonds"
+                atom1_spec = f"{residue1}@{atom1}"
             
+            if ',' in str(atom2):
+                marker2 = f"marker #{model.id_string}.43 position {atom2} color gray radius 0.12"
+                marker2_obj = run(session, marker2)
+                marker2_obj.structure.name = "ProteinCraftMarkers"
+                atom2_spec = f"#{model.id_string}.43:{marker2_obj.serial_number}"
+            else:
+                atom2_spec = f"{residue2}@{atom2}"
+
+            # Use the appropriate specifications in pbond command
+            pbond_command = f"pbond {atom1_spec} {atom2_spec} color {color} radius 0.1 dashes 4 name ProteinCraftBonds"
             run(session, pbond_command)
             
     return success
