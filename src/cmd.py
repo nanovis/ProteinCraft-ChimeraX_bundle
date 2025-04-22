@@ -235,6 +235,8 @@ def sync(session, jsonString=None):
                     if 'bonds' in state:
                         success = _process_bonds(session, mol, state['bonds'])
         
+        run(session, "cartoon tether opacity 0")
+        
         if success:
             session.logger.info("Successfully updated model display states and bonds")
         else:
