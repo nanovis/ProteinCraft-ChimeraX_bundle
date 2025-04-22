@@ -11,7 +11,7 @@ from chimerax.core.commands import Or, Bounded  # Argument modifiers
 from chimerax.atomic import Structure           # Structure model type
 import json                                     # For JSON formatting
 from chimerax.core.commands import run
-from .ProteinCraftData import ProteinCraftData  # Import the new class
+from .ProteinCraftData import ProteinCraftData, BondDetailType  # Import the new class and enum
 from pathlib import Path                        # For file path operations
 
 # ==========================================================================
@@ -256,4 +256,24 @@ def printJson(session):
         session.logger.info(json_string)
 
 printJson_desc = CmdDesc()
+
+def bondDetail(session, detail_type=None):
+    """Show or set the bond detail type (CA/ATOM/AUTO)."""
+    if detail_type is None:
+        # Show current bond detail type
+        current_type = ProteinCraftData.get_instance().get_bond_detail()
+        session.logger.info(f"Current bond detail type: {current_type.value}")
+    else:
+        # Set new bond detail type
+        try:
+            new_type = BondDetailType(detail_type.upper())
+            ProteinCraftData.get_instance().set_bond_detail(new_type)
+            session.logger.info(f"Bond detail type set to: {new_type.value}")
+        except ValueError:
+            session.logger.error(f"Invalid bond detail type. Must be one of: {', '.join(t.value for t in BondDetailType)}")
+
+bondDetail_desc = CmdDesc(
+    optional=[("detail_type", StringArg)],
+    synopsis="Show or set bond detail type"
+)
 
