@@ -12,6 +12,7 @@ from chimerax.atomic import Structure           # Structure model type
 import json                                     # For JSON formatting
 from chimerax.core.commands import run
 from .ProteinCraftData import ProteinCraftData  # Import the new class
+from pathlib import Path                        # For file path operations
 
 # ==========================================================================
 # Helper functions
@@ -28,7 +29,11 @@ def _get_model_by_filename(session, filename):
 def _open_model(session, filepath):
     """Open a model file and return the model."""
     try:
-        model = run(session, f"open {filepath} format pdb")[0]
+        # Get file extension using pathlib
+        ext = Path(filepath).suffix.lower()
+        format_str = "pdb" if ext.startswith(".pdb") else "cif" 
+        
+        model = run(session, f"open {filepath} format {format_str}")[0]
         # Color by chain after opening
         run(session, f"color #!{model.id_string} bychain")
         run(session, f"color #!{model.id_string} byhetero")
