@@ -101,6 +101,9 @@ def _process_bonds(session, model, bonds):
         else:
             bond_detail = BondDetailType.ATOM
     
+    # Local dictionary to track bond pairs
+    bond_pairs = {}
+    
     success = True
     for bond in bonds:
         atom1 = bond.get('atom1')
@@ -148,6 +151,8 @@ def _process_bonds(session, model, bonds):
             else:
                 color = "gold"            # fallback
             
+            radius = 0.1
+
             # Handle atom specifications based on bond detail type
             if bond_detail == BondDetailType.CA:
                 # For CA mode, always use CA atoms
@@ -155,6 +160,19 @@ def _process_bonds(session, model, bonds):
                 atom2_spec = f"{residue2}@CA"
                 run(session, f"cartoon {residue1} suppressBackboneDisplay true")
                 run(session, f"cartoon {residue2} suppressBackboneDisplay true")
+
+                # Create a unique key for the bond pair
+                pair_key = f"{residue1}-{residue2}"
+                count = bond_pairs.get(pair_key, 0) + 1
+                bond_pairs[pair_key] = count
+                
+                # Calculate radius based on occurrence count
+                base_radius = 0.1
+                radius = base_radius * count
+                
+                # Use gold color if bond appears more than once
+                if count > 1:
+                    color = "gold" 
             else:
                 # For ATOM mode, use the specified atoms
                 if ',' in str(atom1):
@@ -182,7 +200,7 @@ def _process_bonds(session, model, bonds):
                 run(session, f"cartoon {residue2} suppressBackboneDisplay false")
 
             # Use the appropriate specifications in pbond command
-            pbond_command = f"pbond {atom1_spec} {atom2_spec} color {color} radius 0.1 dashes 4 name ProteinCraftBonds"
+            pbond_command = f"pbond {atom1_spec} {atom2_spec} color {color} radius {radius} dashes 4 name ProteinCraftBonds"
             run(session, pbond_command)
             
     return success
