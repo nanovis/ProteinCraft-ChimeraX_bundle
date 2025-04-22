@@ -91,11 +91,6 @@ def _process_bonds(session, model, bonds):
     if not bonds:
         return True
         
-    # Delete existing ProteinCraftBonds submodels
-    for submodel in model.child_models():
-        if submodel.name == "ProteinCraftBonds" or submodel.name == "ProteinCraftMarkers":
-            session.models.close([submodel])
-        
     success = True
     for bond in bonds:
         atom1 = bond.get('atom1')
@@ -214,6 +209,11 @@ def sync(session, jsonString=None):
         for mol in mols:
             if hasattr(mol, 'filename') and mol.filename:
                 mol.display = False
+
+            # Delete existing ProteinCraftBonds submodels
+            for submodel in mol.child_models():
+                if submodel.name == "ProteinCraftBonds" or submodel.name == "ProteinCraftMarkers":
+                    session.models.close([submodel])
         
         success = True
         # Process files that should be displayed
