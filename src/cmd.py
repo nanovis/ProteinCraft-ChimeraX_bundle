@@ -276,9 +276,9 @@ def sync(session, jsonString=None):
                 chain_a_color = getattr(mol, 'chain_a_color', None)
                 chain_b_color = getattr(mol, 'chain_b_color', None)
 
-                # If there is only one key-value pair in displayed_states, use default chain b color
+                # If there is only one key-value pair in displayed_states, use default chain a color
                 if len(displayed_states.keys()) == 1:
-                    chain_b_color = "#d95f02"
+                    chain_a_color = "#1b9e77"
                 
                 if chain_a_color and chain_b_color:
                     run(session, 
