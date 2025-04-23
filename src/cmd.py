@@ -245,6 +245,9 @@ def sync(session, jsonString=None):
         # Parse the JSON string
         display_states = json.loads(jsonString)
         
+        # Filter display_states to only include those with display=True
+        displayed_states = {k: v for k, v in display_states.items() if v.get('display', False)}
+        
         # Get all open structure models
         mols = session.models.list(type=Structure)
         
@@ -260,42 +263,41 @@ def sync(session, jsonString=None):
         
         success = True
         # Process files that should be displayed
-        for filepath, state in display_states.items():
-            if state.get('display', False):  # Only process if display is True
-                # Check if file is already open
-                mol = _get_model_by_filename(session, filepath)
-                
-                if mol is None:
-                    # If file is not open, open it
-                    mol = _open_model(session, filepath)
-                
-                if mol:
-                    # Apply stored chain colors if they exist
-                    chain_a_color = getattr(mol, 'chain_a_color', None)
-                    chain_b_color = getattr(mol, 'chain_b_color', None)
+        for filepath, state in displayed_states.items():
+            # Check if file is already open
+            mol = _get_model_by_filename(session, filepath)
+            
+            if mol is None:
+                # If file is not open, open it
+                mol = _open_model(session, filepath)
+            
+            if mol:
+                # Apply stored chain colors if they exist
+                chain_a_color = getattr(mol, 'chain_a_color', None)
+                chain_b_color = getattr(mol, 'chain_b_color', None)
 
-                    # If len(display_states) == 1, then we use the default chain b color
-                    if len(display_states) == 1:
-                        chain_b_color = "#d95f02"
-                    
-                    if chain_a_color and chain_b_color:
-                        run(session, 
-                            f"color #!{mol.id_string}/B {chain_b_color} target c; "
-                            f"color #!{mol.id_string}/A {chain_a_color} target c; "
-                            f"color #!{mol.id_string} byhetero; "
-                            f"hide #!{mol.id_string} atoms",
-                            log=False)
-                    else:
-                        # Fallback to bychain if colors not set
-                        run(session, 
-                            f"color #!{mol.id_string} bychain; "
-                            f"color #!{mol.id_string} byhetero; "
-                            f"hide #!{mol.id_string} atoms",
-                            log=False)
-                    mol.display = True
-                    # Process bonds if they exist
-                    if 'bonds' in state:
-                        success = _process_bonds(session, mol, state['bonds'])
+                # If len(displayed_states) == 1, then we use the default chain b color
+                if len(displayed_states) == 1:
+                    chain_b_color = "#d95f02"
+                
+                if chain_a_color and chain_b_color:
+                    run(session, 
+                        f"color #!{mol.id_string}/B {chain_b_color} target c; "
+                        f"color #!{mol.id_string}/A {chain_a_color} target c; "
+                        f"color #!{mol.id_string} byhetero; "
+                        f"hide #!{mol.id_string} atoms",
+                        log=False)
+                else:
+                    # Fallback to bychain if colors not set
+                    run(session, 
+                        f"color #!{mol.id_string} bychain; "
+                        f"color #!{mol.id_string} byhetero; "
+                        f"hide #!{mol.id_string} atoms",
+                        log=False)
+                mol.display = True
+                # Process bonds if they exist
+                if 'bonds' in state:
+                    success = _process_bonds(session, mol, state['bonds'])
         
         run(session, "cartoon tether opacity 0", log=False)
         
