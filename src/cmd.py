@@ -35,6 +35,9 @@ def _open_model(session, filepath):
         
         model = run(session, f"open {filepath} format {format_str}")[0]
         
+        # Set chain B color (always the same)
+        model.chain_b_color = "#d95f02"
+        
         # Check if there are multiple structures being displayed
         mols = [m for m in session.models.list(type=Structure) if m.display]
         if len(mols) > 1:
@@ -55,19 +58,25 @@ def _open_model(session, filepath):
             color_index = len(mols) % len(chain_colors)
             chain_color = chain_colors[color_index]
             
-            # For multiple structures, give chain A a distinct color
+            # Store the color in the model's attributes
+            model.chain_a_color = chain_color
+            
+            # For multiple structures, give chain A a distinct color and chain B a specific color
             run(session, 
                 f"color #!{model.id_string} bychain; "
-                f"color #!{model.id_string}/A {chain_color} target c; "
+                f"color #!{model.id_string}/B {model.chain_b_color} target c; "
+                f"color #!{model.id_string}/A {model.chain_a_color} target c; "
                 f"color #!{model.id_string} byhetero",
                 log=False)
         else:
-            # For single structure, use default coloring
+            # For single structure, give chain A a specific color and chain B a specific color
+            model.chain_a_color = "#1b9e77"
             run(session, 
                 f"color #!{model.id_string} bychain; "
+                f"color #!{model.id_string}/B {model.chain_b_color} target c; "
+                f"color #!{model.id_string}/A {model.chain_a_color} target c; "
                 f"color #!{model.id_string} byhetero",
                 log=False)
-            
         return model
     except Exception as e:
         session.logger.error(f"Error opening file {filepath}: {str(e)}")
@@ -215,7 +224,8 @@ def status(session):
             mol_dict[mol.filename] = {
                 'id': mol.id_string,
                 'name': mol.name,
-                'display': mol.display
+                'display': mol.display,
+                'chain_a_color': getattr(mol, 'chain_a_color', None)
             }
     json_output = json.dumps(mol_dict, indent=2)
     session.logger.info(json_output)
@@ -260,11 +270,28 @@ def sync(session, jsonString=None):
                     mol = _open_model(session, filepath)
                 
                 if mol:
-                    run(session, 
-                        f"color #!{mol.id_string} bychain; "
-                        f"color #!{mol.id_string} byhetero; "
-                        f"hide #!{mol.id_string} atoms",
-                        log=False)
+                    # Apply stored chain colors if they exist
+                    chain_a_color = getattr(mol, 'chain_a_color', None)
+                    chain_b_color = getattr(mol, 'chain_b_color', None)
+
+                    # If len(display_states) == 1, then we use the default chain b color
+                    if len(display_states) == 1:
+                        chain_b_color = "#d95f02"
+                    
+                    if chain_a_color and chain_b_color:
+                        run(session, 
+                            f"color #!{mol.id_string}/B {chain_b_color} target c; "
+                            f"color #!{mol.id_string}/A {chain_a_color} target c; "
+                            f"color #!{mol.id_string} byhetero; "
+                            f"hide #!{mol.id_string} atoms",
+                            log=False)
+                    else:
+                        # Fallback to bychain if colors not set
+                        run(session, 
+                            f"color #!{mol.id_string} bychain; "
+                            f"color #!{mol.id_string} byhetero; "
+                            f"hide #!{mol.id_string} atoms",
+                            log=False)
                     mol.display = True
                     # Process bonds if they exist
                     if 'bonds' in state:
