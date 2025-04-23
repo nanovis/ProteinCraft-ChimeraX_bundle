@@ -41,25 +41,14 @@ def _open_model(session, filepath):
         # Check if there are multiple structures being displayed
         mols = [m for m in session.models.list(type=Structure) if m.display]
         if len(mols) > 1:
-            # ChimeraX's default chain colors
-            chain_colors = [
-                "#1f77b4",  # blue
-                "#ff7f0e",  # orange
-                "#2ca02c",  # green
-                "#d62728",  # red
-                "#9467bd",  # purple
-                "#8c564b",  # brown
-                "#e377c2",  # pink
-                "#7f7f7f",  # gray
-                "#bcbd22",  # yellow-green
-                "#17becf",  # cyan
-            ]
-            # Use a color based on the model's position in the list
-            color_index = len(mols) % len(chain_colors)
-            chain_color = chain_colors[color_index]
-            
+            # There is an auto generated model.model_color attribute, 
+            # in format of array([ R,  G,  B,  A], dtype=uint8)
+            # We need to convert this to a hex color string
             # Store the color in the model's attributes
-            model.chain_a_color = chain_color
+            model.chain_a_color = '#{:02x}{:02x}{:02x}'.format(
+                model.model_color[0], 
+                model.model_color[1], 
+                model.model_color[2])
             
             # For multiple structures, give chain A a distinct color and chain B a specific color
             run(session, 
