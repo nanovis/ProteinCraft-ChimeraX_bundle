@@ -36,7 +36,7 @@ def _open_model(session, filepath):
         model = run(session, f"open {filepath} format {format_str}")[0]
         
         # Set chain B color (always the same)
-        model.chain_b_color = "#d95f02"
+        model.chain_b_color = ProteinCraftData.CHAIN_B_COLOR
         
         # Check if there are multiple structures being displayed
         mols = [m for m in session.models.list(type=Structure) if m.display]
@@ -70,7 +70,7 @@ def _open_model(session, filepath):
                 log=False)
         else:
             # For single structure, give chain A a specific color and chain B a specific color
-            model.chain_a_color = "#1b9e77"
+            model.chain_a_color = ProteinCraftData.CHAIN_A_COLOR
             run(session, 
                 f"color #!{model.id_string} bychain; "
                 f"color #!{model.id_string}/B {model.chain_b_color} target c; "
@@ -278,7 +278,8 @@ def sync(session, jsonString=None):
 
                 # If there is only one key-value pair in displayed_states, use default chain a color
                 if len(displayed_states.keys()) == 1:
-                    chain_a_color = "#1b9e77"
+                    chain_a_color = ProteinCraftData.CHAIN_A_COLOR
+                    chain_b_color = ProteinCraftData.CHAIN_B_COLOR
                 
                 if chain_a_color and chain_b_color:
                     run(session, 

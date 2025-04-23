@@ -9,6 +9,9 @@ class ProteinCraftData:
     _instance = None
     _json_string = None
     _bond_detail = BondDetailType.AUTO
+    # Default chain colors
+    CHAIN_A_COLOR = "#816DF9"
+    CHAIN_B_COLOR = "#FB8686"
 
     @classmethod
     def get_instance(cls):
