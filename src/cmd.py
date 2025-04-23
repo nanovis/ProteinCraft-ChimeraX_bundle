@@ -34,38 +34,16 @@ def _open_model(session, filepath):
         format_str = "pdb" if ext.startswith(".pdb") else "cif" 
         
         model = run(session, f"open {filepath} format {format_str}")[0]
+
+        # There is an auto generated model.model_color attribute, 
+        # in format of array([ R,  G,  B,  A], dtype=uint8)
+        # We need to convert this to a hex color string
+        # Store the color in the model's attributes
+        model.chain_a_color = '#{:02x}{:02x}{:02x}'.format(
+            model.model_color[0], 
+            model.model_color[1], 
+            model.model_color[2])
         
-        # Set chain B color (always the same)
-        model.chain_b_color = ProteinCraftData.CHAIN_B_COLOR
-        
-        # Check if there are multiple structures being displayed
-        mols = [m for m in session.models.list(type=Structure) if m.display]
-        if len(mols) > 1:
-            # There is an auto generated model.model_color attribute, 
-            # in format of array([ R,  G,  B,  A], dtype=uint8)
-            # We need to convert this to a hex color string
-            # Store the color in the model's attributes
-            model.chain_a_color = '#{:02x}{:02x}{:02x}'.format(
-                model.model_color[0], 
-                model.model_color[1], 
-                model.model_color[2])
-            
-            # For multiple structures, give chain A a distinct color and chain B a specific color
-            run(session, 
-                f"color #!{model.id_string} bychain; "
-                f"color #!{model.id_string}/B {model.chain_b_color} target c; "
-                f"color #!{model.id_string}/A {model.chain_a_color} target c; "
-                f"color #!{model.id_string} byhetero",
-                log=False)
-        else:
-            # For single structure, give chain A a specific color and chain B a specific color
-            model.chain_a_color = ProteinCraftData.CHAIN_A_COLOR
-            run(session, 
-                f"color #!{model.id_string} bychain; "
-                f"color #!{model.id_string}/B {model.chain_b_color} target c; "
-                f"color #!{model.id_string}/A {model.chain_a_color} target c; "
-                f"color #!{model.id_string} byhetero",
-                log=False)
         return model
     except Exception as e:
         session.logger.error(f"Error opening file {filepath}: {str(e)}")
@@ -263,17 +241,15 @@ def sync(session, jsonString=None):
             if mol:
                 # Apply stored chain colors if they exist
                 chain_a_color = getattr(mol, 'chain_a_color', None)
-                chain_b_color = getattr(mol, 'chain_b_color', None)
 
-                # If there is only one key-value pair in displayed_states, use default chain a color
+                # If there is only one key-value pair in displayed_states, use default chain colors
                 if len(displayed_states.keys()) == 1:
                     chain_a_color = ProteinCraftData.CHAIN_A_COLOR
-                    chain_b_color = ProteinCraftData.CHAIN_B_COLOR
-                
-                if chain_a_color and chain_b_color:
+
+                if chain_a_color:
                     run(session, 
-                        f"color #!{mol.id_string}/B {chain_b_color} target c; "
                         f"color #!{mol.id_string}/A {chain_a_color} target c; "
+                        f"color #!{mol.id_string}/B {ProteinCraftData.CHAIN_B_COLOR} target c; "
                         f"color #!{mol.id_string} byhetero; "
                         f"hide #!{mol.id_string} atoms",
                         log=False)
