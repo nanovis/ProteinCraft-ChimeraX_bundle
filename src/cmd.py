@@ -34,55 +34,44 @@ def _open_model(session, filepath):
         format_str = "pdb" if ext.startswith(".pdb") else "cif" 
         
         model = run(session, f"open {filepath} format {format_str}")[0]
-        # Color by chain after opening
-        run(session, 
-            f"color #!{model.id_string} bychain; "
-            f"color #!{model.id_string} byhetero",
-            log=False)
+        
+        # Check if there are multiple structures being displayed
+        mols = [m for m in session.models.list(type=Structure) if m.display]
+        if len(mols) > 1:
+            # ChimeraX's default chain colors
+            chain_colors = [
+                "#1f77b4",  # blue
+                "#ff7f0e",  # orange
+                "#2ca02c",  # green
+                "#d62728",  # red
+                "#9467bd",  # purple
+                "#8c564b",  # brown
+                "#e377c2",  # pink
+                "#7f7f7f",  # gray
+                "#bcbd22",  # yellow-green
+                "#17becf",  # cyan
+            ]
+            # Use a color based on the model's position in the list
+            color_index = len(mols) % len(chain_colors)
+            chain_color = chain_colors[color_index]
+            
+            # For multiple structures, give chain A a distinct color
+            run(session, 
+                f"color #!{model.id_string} bychain; "
+                f"color #!{model.id_string}/A {chain_color} target c; "
+                f"color #!{model.id_string} byhetero",
+                log=False)
+        else:
+            # For single structure, use default coloring
+            run(session, 
+                f"color #!{model.id_string} bychain; "
+                f"color #!{model.id_string} byhetero",
+                log=False)
+            
         return model
     except Exception as e:
         session.logger.error(f"Error opening file {filepath}: {str(e)}")
         return None
-
-def _get_correct_atom_name(session, model, residue_spec, atom_name):
-    """Find the correct atom name that ChimeraX recognizes.
-    
-    Args:
-        session: ChimeraX session
-        model: Structure model
-        residue_spec: Residue specification (e.g. "A:1")
-        atom_name: Original atom name to check
-    
-    Returns:
-        str: Correct atom name that exists in ChimeraX, or None if not found
-    """
-    # First try the exact name
-    try:
-        result = run(session, f"select {residue_spec}@{atom_name}", log=False)
-        if result and result.num_atoms > 0:
-            run(session, f"~select {residue_spec}@{atom_name}", log=False)
-            return atom_name
-    except:
-        pass
-    
-    # Handle cases where last digit moves to beginning (e.g. "HD12" -> "2HD1")
-    if len(atom_name) >= 3 and atom_name[-1].isdigit():
-        # Extract the last digit
-        last_digit = atom_name[-1]
-        # Remove the last digit from the original name
-        base_name = atom_name[:-1]
-        # Create the new name with the digit at the beginning
-        new_name = f"{last_digit}{base_name}"
-        
-        try:
-            result = run(session, f"select {residue_spec}@{new_name}", log=False)
-            if result and result.num_atoms > 0:
-                run(session, f"~select {residue_spec}@{new_name}", log=False)
-                return new_name
-        except:
-            pass
-    
-    return None
 
 def _process_bonds(session, model, bonds):
     """Process and display bonds for a model.
