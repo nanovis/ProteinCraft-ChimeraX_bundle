@@ -248,8 +248,8 @@ def sync(session, jsonString=None):
 
                 if chain_a_color:
                     run(session, 
-                        f"color #!{mol.id_string}/A {chain_a_color} target c; "
-                        f"color #!{mol.id_string}/B {ProteinCraftData.CHAIN_B_COLOR} target c; "
+                        f"color #!{mol.id_string}/A {chain_a_color}; "
+                        f"color #!{mol.id_string}/B {ProteinCraftData.CHAIN_B_COLOR}; "
                         f"color #!{mol.id_string} byhetero; "
                         f"hide #!{mol.id_string} atoms",
                         log=False)
