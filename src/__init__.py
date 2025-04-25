@@ -1,35 +1,80 @@
 # vim: set expandtab shiftwidth=4 softtabstop=4:
 
 from chimerax.core.toolshed import BundleAPI
+import urllib.request, urllib.parse
+import json
+from chimerax.core import models, selection
+import chimerax.atomic as atomic
 
 
-# Subclass from chimerax.core.toolshed.BundleAPI and
-# override the method for registering commands,
-# inheriting all other methods from the base class.
-class _MyAPI(BundleAPI):
+def initialize(session):
+    """Initialize the ProteinCraft bundle."""
+    session.logger.info("ProteinCraft: initialize")
+    # Wait for the main UI to be ready before adding handlers
+    if session.ui.is_gui:
+        session.ui.triggers.add_handler('ready', lambda t, d: _register_handlers(session))
+    else:
+        # For command-line interface, register handlers immediately
+        _register_handlers(session)
 
-    api_version = 1     # register_command called with BundleInfo and
-                        # CommandInfo instance instead of command name
-                        # (when api_version==0)
+def _register_handlers(session):
+    """Register event handlers for the session."""
+    ts = session.triggers
+    # 1) Selection changes
+    ts.add_handler(selection.SELECTION_CHANGED, lambda t, d: _post_event(session, "selection_changed", {}))
+    # 2) Model position changes (e.g. moving or rotating models)
+    ts.add_handler(models.MODEL_POSITION_CHANGED, lambda t, model: _post_event(session, "model_moved", {"model": model.id}))
+    # 3) Per-frame draw (use this to detect camera/view changes)
+    ts.add_handler('frame drawn', lambda t, loop: _post_camera_state(session))
+    # 4) Atomic attribute changes (e.g. display on/off)
+    at = atomic.get_triggers(session)
+    at.add_handler('changes done', lambda t, changes: _post_display_changes(session, changes))
 
-    # Override method
+def _post_event(session, event_type, data):
+    """Post an event with the given type and data."""
+    payload = json.dumps({"event": event_type, "data": data}).encode('utf-8')
+    session.logger.info("ProteinCraft: _post_event: " + payload.decode('utf-8'))
+
+def _post_camera_state(session):
+    """Post the current camera state."""
+    view = session.main_view  # a chimerax.graphics.view.View instance
+    cam = view.camera
+    # Convert Place object to serializable format
+    pos = cam.position
+    state = {
+        "position": {
+            "origin": pos.origin().tolist(),
+            "axes": [pos.axes()[i].tolist() for i in range(3)]
+        }
+        # "fov": cam.field_of_view
+    }
+    _post_event(session, "camera_changed", state)
+
+def _post_display_changes(session, changes):
+    """Post display changes for atomic structures."""
+    if changes is None:
+        return
+    # look for "display" attr changes on structures
+    for struct in changes.modified_atomic_structures():
+        if 'display changed' in changes.reasons(struct):
+            _post_event(session, "display_toggled", {"structure": struct.id, "display": struct.display})
+
+class _ProteinCraftAPI(BundleAPI):
+    """API for the ProteinCraft bundle."""
+
+    api_version = 1  # Use BundleInfo and CommandInfo instances
+
     @staticmethod
     def register_command(bi, ci, logger):
+        """Register a command with ChimeraX."""
+
         # bi is an instance of chimerax.core.toolshed.BundleInfo
         # ci is an instance of chimerax.core.toolshed.CommandInfo
         # logger is an instance of chimerax.core.logger.Logger
 
         # This method is called once for each command listed
-        # in bundle_info.xml.  Since we list two commands,
-        # we expect two calls to this method.
+        # in bundle_info.xml.
 
-        # We check the name of the command, which should match
-        # one of the ones listed in bundle_info.xml
-        # (without the leading and trailing whitespace),
-        # and import the function to call and its argument
-        # description from the ``cmd`` module.
-        # If the description does not contain a synopsis, we
-        # add the one in ``ci``, which comes from bundle_info.xml.
         from . import cmd
         if ci.name == "proteincraft status":
             func = cmd.status
@@ -47,15 +92,23 @@ class _MyAPI(BundleAPI):
             func = cmd.bondDetail
             desc = cmd.bondDetail_desc
         else:
-            raise ValueError("trying to register unknown command: %s" % ci.name)
+            raise ValueError(f"trying to register unknown command: {ci.name}")
+
         if desc.synopsis is None:
             desc.synopsis = ci.synopsis
 
-        # We then register the function as the command callback
-        # with the chimerax.core.commands module.
         from chimerax.core.commands import register
         register(ci.name, desc, func)
 
+    @staticmethod
+    def initialize(session, bundle_info):
+        """Initialize the bundle when it is loaded."""
+        initialize(session)
 
-# Create the ``bundle_api`` object that ChimeraX expects.
-bundle_api = _MyAPI()
+    @staticmethod
+    def finish(session, bundle_info):
+        """Clean up when the bundle is unloaded."""
+        session.logger.info("ProteinCraft: finish unloading")
+
+# Create the bundle_api object that ChimeraX expects
+bundle_api = _ProteinCraftAPI()
