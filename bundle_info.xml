@@ -6,8 +6,11 @@ will be displayed without the ChimeraX- prefix.
 -->
 
 <BundleInfo name="ChimeraX-ProteinCraft"
-	    version="0.1" package="chimerax.proteincraft"
-  	    minSessionVersion="1" maxSessionVersion="1">
+            version="0.1" 
+            package="chimerax.proteincraft"
+            customInit="true"
+            minSessionVersion="1" 
+            maxSessionVersion="1">
 
   <!-- Additional information about bundle source -->
   <Author>ProteinCraft</Author>
