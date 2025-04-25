@@ -9,6 +9,7 @@ class ProteinCraftData:
     _instance = None
     _json_string = None
     _bond_detail = BondDetailType.AUTO
+    _flankingNum = 2  # Default number of flanking residues
     # Default chain colors
     CHAIN_A_COLOR = "#816DF9"
     CHAIN_B_COLOR = "#FB8686"
@@ -32,4 +33,13 @@ class ProteinCraftData:
         if isinstance(bond_detail, BondDetailType):
             self._bond_detail = bond_detail
         else:
-            raise ValueError("bond_detail must be a BondDetailType enum value") 
+            raise ValueError("bond_detail must be a BondDetailType enum value")
+
+    def get_flanking_num(self):
+        return self._flankingNum
+
+    def set_flanking_num(self, flanking_num):
+        if isinstance(flanking_num, int) and flanking_num >= 0:
+            self._flankingNum = flanking_num
+        else:
+            raise ValueError("flanking_num must be a non-negative integer") 
