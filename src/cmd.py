@@ -65,6 +65,8 @@ def _process_bonds(session, model, bonds):
 
     if flanking_enabled:
         run(session, f"hide #{model.id_string}/A target c;", log=False)
+    else:
+        run(session, f"show #{model.id_string}/A target c;", log=False)
     
     # For AUTO mode, determine if we should show CA or ATOM based on bond count
     if bond_detail == BondDetailType.AUTO:
