@@ -57,6 +57,10 @@ and "proteincraft sync" to synchronize with ProteinCraft.
       Print the stored JSON string from ProteinCraft</ChimeraXClassifier>
     <ChimeraXClassifier>ChimeraX :: Command :: proteincraft bondDetail :: General ::
       Show or set bond detail type (CA/ATOM/AUTO)</ChimeraXClassifier>
+    <ChimeraXClassifier>ChimeraX :: Command :: proteincraft flankingNum :: General ::
+      Show or set number of flanking residues to highlight</ChimeraXClassifier>
+    <ChimeraXClassifier>ChimeraX :: Command :: proteincraft flankingEnabled :: General ::
+      Show or set whether flanking residues should be displayed</ChimeraXClassifier>
   </Classifiers>
 
 </BundleInfo>
