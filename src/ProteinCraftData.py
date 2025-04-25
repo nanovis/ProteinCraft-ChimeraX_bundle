@@ -10,6 +10,7 @@ class ProteinCraftData:
     _json_string = None
     _bond_detail = BondDetailType.AUTO
     _flankingNum = 2  # Default number of flanking residues
+    _flanking_enabled = True  # Default to showing flanking residues
     # Default chain colors
     CHAIN_A_COLOR = "#816DF9"
     CHAIN_B_COLOR = "#FB8686"
@@ -42,4 +43,13 @@ class ProteinCraftData:
         if isinstance(flanking_num, int) and flanking_num >= 0:
             self._flankingNum = flanking_num
         else:
-            raise ValueError("flanking_num must be a non-negative integer") 
+            raise ValueError("flanking_num must be a non-negative integer")
+
+    def get_flanking_enabled(self):
+        return self._flanking_enabled
+
+    def set_flanking_enabled(self, enabled):
+        if isinstance(enabled, bool):
+            self._flanking_enabled = enabled
+        else:
+            raise ValueError("enabled must be a boolean value") 
