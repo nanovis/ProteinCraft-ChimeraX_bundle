@@ -9,7 +9,6 @@ import chimerax.atomic as atomic
 
 def initialize(session):
     """Initialize the ProteinCraft bundle."""
-    session.logger.info("ProteinCraft: initialize")
     # Wait for the main UI to be ready before adding handlers
     if session.ui.is_gui:
         session.ui.triggers.add_handler('ready', lambda t, d: _register_handlers(session))
