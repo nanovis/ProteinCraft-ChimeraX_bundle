@@ -49,7 +49,7 @@ def _open_model(session, filepath):
         session.logger.error(f"Error opening file {filepath}: {str(e)}")
         return None
 
-def _process_bonds(session, model, bonds):
+def _process_bonds(session, model, chain_a_color, bonds):
     """Process and display bonds for a model.
     
     Returns:
@@ -65,6 +65,7 @@ def _process_bonds(session, model, bonds):
 
     if flanking_enabled:
         run(session, f"hide #{model.id_string}/A target c;", log=False)
+        run(session, f"color #{model.id_string}/A {chain_a_color} target c transparency 70;", log=False)
     else:
         run(session, f"show #{model.id_string}/A target c;", log=False)
     
@@ -105,6 +106,7 @@ def _process_bonds(session, model, bonds):
                 flanking_end = int(index1) + flanking_num
                 commands.extend([
                     f"show #{model.id_string}/{chain1}:{flanking_start}-{flanking_end} target c",
+                    f"color {residue1} {chain_a_color} target c transparency 0;",
                 ])
             else:
                 commands.extend([
@@ -264,25 +266,18 @@ def sync(session, jsonString=None):
                 # If there is only one key-value pair in displayed_states, use default chain colors
                 if len(displayed_states.keys()) == 1:
                     chain_a_color = ProteinCraftData.CHAIN_A_COLOR
-
-                if chain_a_color:
-                    run(session, 
-                        f"color #!{mol.id_string}/A {chain_a_color}; "
-                        f"color #!{mol.id_string}/B {ProteinCraftData.CHAIN_B_COLOR}; "
-                        f"color #!{mol.id_string} byhetero; "
-                        f"hide #!{mol.id_string} atoms",
-                        log=False)
-                else:
-                    # Fallback to bychain if colors not set
-                    run(session, 
-                        f"color #!{mol.id_string} bychain; "
-                        f"color #!{mol.id_string} byhetero; "
-                        f"hide #!{mol.id_string} atoms",
-                        log=False)
+                
+                run(session, 
+                    f"color #!{mol.id_string}/A {chain_a_color} transparency 0; "
+                    f"color #!{mol.id_string}/B {ProteinCraftData.CHAIN_B_COLOR}; "
+                    f"color #!{mol.id_string} byhetero; "
+                    f"hide #!{mol.id_string} atoms",
+                    log=False)
+                
                 mol.display = True
                 # Process bonds if they exist
                 if 'bonds' in state:
-                    success = _process_bonds(session, mol, state['bonds'])
+                    success = _process_bonds(session, mol, chain_a_color, state['bonds'])
         
         run(session, "cartoon tether opacity 0", log=False)
         
