@@ -97,9 +97,8 @@ def _process_bonds(session, model, bonds):
 
             # Color the residues and their flanking regions
             commands = [
-                f"color {residue1} red target c",
-                f"color {residue2} red target c"
-            ]
+                f"color {residue2} red target c",
+                ]
             
             if flanking_enabled:
                 flanking_start = max(1, int(index1) - flanking_num)
@@ -107,6 +106,10 @@ def _process_bonds(session, model, bonds):
                 commands.extend([
                     f"show #{model.id_string}/{chain1}:{flanking_start}-{flanking_end} target c",
                 ])
+            else:
+                commands.extend([
+                    f"color {residue1} red target c",
+                    ])
             
             run(session, "; ".join(commands), log=False)
             
