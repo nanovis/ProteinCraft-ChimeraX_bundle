@@ -337,3 +337,27 @@ flankingNum_desc = CmdDesc(
     optional=[("num", IntArg)],
     synopsis="Show or set number of flanking residues to highlight"
 )
+
+def flankingEnabled(session, enabled=None):
+    """Show or set whether flanking residues should be displayed."""
+    if enabled is None:
+        # Show current flanking enabled state
+        current_state = ProteinCraftData.get_instance().get_flanking_enabled()
+        session.logger.info(f"Flanking residues are {'enabled' if current_state else 'disabled'}")
+    else:
+        # Set new flanking enabled state
+        try:
+            ProteinCraftData.get_instance().set_flanking_enabled(enabled)
+            session.logger.info(f"Flanking residues are now {'enabled' if enabled else 'disabled'}")
+            
+            # If there's a stored JSON string, run sync command
+            json_string = ProteinCraftData.get_instance().get_json_string()
+            if json_string:
+                sync(session, jsonString=json_string)
+        except ValueError as e:
+            session.logger.error(str(e))
+
+flankingEnabled_desc = CmdDesc(
+    optional=[("enabled", BoolArg)],
+    synopsis="Show or set whether flanking residues should be displayed"
+)
