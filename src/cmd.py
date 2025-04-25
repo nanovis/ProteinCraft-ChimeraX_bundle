@@ -314,3 +314,26 @@ bondDetail_desc = CmdDesc(
     synopsis="Show or set bond detail type"
 )
 
+def flankingNum(session, num=None):
+    """Show or set the number of flanking residues to highlight around bond residues."""
+    if num is None:
+        # Show current flanking number
+        current_num = ProteinCraftData.get_instance().get_flanking_num()
+        session.logger.info(f"Current flanking number: {current_num}")
+    else:
+        # Set new flanking number
+        try:
+            ProteinCraftData.get_instance().set_flanking_num(num)
+            session.logger.info(f"Flanking number set to: {num}")
+            
+            # If there's a stored JSON string, run sync command
+            json_string = ProteinCraftData.get_instance().get_json_string()
+            if json_string:
+                sync(session, jsonString=json_string)
+        except ValueError as e:
+            session.logger.error(str(e))
+
+flankingNum_desc = CmdDesc(
+    optional=[("num", IntArg)],
+    synopsis="Show or set number of flanking residues to highlight"
+)

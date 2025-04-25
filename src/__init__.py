@@ -90,6 +90,9 @@ class _ProteinCraftAPI(BundleAPI):
         elif ci.name == "proteincraft bondDetail":
             func = cmd.bondDetail
             desc = cmd.bondDetail_desc
+        elif ci.name == "proteincraft flankingNum":
+            func = cmd.flankingNum
+            desc = cmd.flankingNum_desc
         else:
             raise ValueError(f"trying to register unknown command: {ci.name}")
 
