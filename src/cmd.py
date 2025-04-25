@@ -58,8 +58,13 @@ def _process_bonds(session, model, bonds):
     if not bonds:
         return True
         
-    # Get current bond detail type
+    # Get current bond detail type and flanking settings
     bond_detail = ProteinCraftData.get_instance().get_bond_detail()
+    flanking_num = ProteinCraftData.get_instance().get_flanking_num()
+    flanking_enabled = ProteinCraftData.get_instance().get_flanking_enabled()
+
+    if flanking_enabled:
+        run(session, f"hide #{model.id_string}/A target c;", log=False)
     
     # For AUTO mode, determine if we should show CA or ATOM based on bond count
     if bond_detail == BondDetailType.AUTO:
@@ -88,11 +93,20 @@ def _process_bonds(session, model, bonds):
             residue1 = f"#{model.id_string}/{chain1}:{index1}"  
             residue2 = f"#{model.id_string}/{chain2}:{index2}"  
 
-            # Color the residues cartoon
-            run(session, 
-                f"color {residue1} red target c; "
-                f"color {residue2} red target c",
-                log=False)
+            # Color the residues and their flanking regions
+            commands = [
+                f"color {residue1} red target c",
+                f"color {residue2} red target c"
+            ]
+            
+            if flanking_enabled:
+                flanking_start = max(1, int(index1) - flanking_num)
+                flanking_end = int(index1) + flanking_num
+                commands.extend([
+                    f"show #{model.id_string}/{chain1}:{flanking_start}-{flanking_end} target c",
+                ])
+            
+            run(session, "; ".join(commands), log=False)
             
             # Construct the pbond command with appropriate color based on interaction type
             color = "gold"  # default color
