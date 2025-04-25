@@ -102,7 +102,8 @@ class _ProteinCraftAPI(BundleAPI):
     @staticmethod
     def initialize(session, bundle_info):
         """Initialize the bundle when it is loaded."""
-        initialize(session)
+        session.logger.info("ProteinCraft: initialize")
+        # initialize(session)
 
     @staticmethod
     def finish(session, bundle_info):
