@@ -62,10 +62,11 @@ def _process_bonds(session, model, chain_a_color, bonds):
     bond_detail = ProteinCraftData.get_instance().get_bond_detail()
     flanking_num = ProteinCraftData.get_instance().get_flanking_num()
     flanking_enabled = ProteinCraftData.get_instance().get_flanking_enabled()
+    flanking_transparency = ProteinCraftData.get_instance().get_flanking_transparency()
 
     if flanking_enabled:
         run(session, f"hide #{model.id_string}/A target c;", log=False)
-        run(session, f"color #{model.id_string}/A {chain_a_color} target c transparency 70;", log=False)
+        run(session, f"color #{model.id_string}/A {chain_a_color} target c transparency {flanking_transparency};", log=False)
     else:
         run(session, f"show #{model.id_string}/A target c;", log=False)
     
@@ -374,4 +375,28 @@ def flankingEnabled(session, enabled=None):
 flankingEnabled_desc = CmdDesc(
     optional=[("enabled", BoolArg)],
     synopsis="Show or set whether flanking residues should be displayed"
+)
+
+def flankingTransparency(session, value=None):
+    """Show or set the transparency value for non-highlighted regions (0-100)."""
+    if value is None:
+        # Show current transparency value
+        current_value = ProteinCraftData.get_instance().get_flanking_transparency()
+        session.logger.info(f"Current flanking transparency: {current_value}")
+    else:
+        # Set new transparency value
+        try:
+            ProteinCraftData.get_instance().set_flanking_transparency(value)
+            session.logger.info(f"Flanking transparency set to: {value}")
+            
+            # If there's a stored JSON string, run sync command
+            json_string = ProteinCraftData.get_instance().get_json_string()
+            if json_string:
+                sync(session, jsonString=json_string)
+        except ValueError as e:
+            session.logger.error(str(e))
+
+flankingTransparency_desc = CmdDesc(
+    optional=[("value", IntArg)],
+    synopsis="Show or set transparency value for non-highlighted regions (0-100)"
 )

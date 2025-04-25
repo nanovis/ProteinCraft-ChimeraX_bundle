@@ -61,6 +61,8 @@ and "proteincraft sync" to synchronize with ProteinCraft.
       Show or set number of flanking residues to highlight</ChimeraXClassifier>
     <ChimeraXClassifier>ChimeraX :: Command :: proteincraft flankingEnabled :: General ::
       Show or set whether flanking residues should be displayed</ChimeraXClassifier>
+    <ChimeraXClassifier>ChimeraX :: Command :: proteincraft flankingTransparency :: General ::
+      Show or set transparency value for non-highlighted regions (0-100)</ChimeraXClassifier>
   </Classifiers>
 
 </BundleInfo>

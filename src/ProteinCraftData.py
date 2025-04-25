@@ -11,6 +11,7 @@ class ProteinCraftData:
     _bond_detail = BondDetailType.AUTO
     _flankingNum = 2  # Default number of flanking residues
     _flanking_enabled = True  # Default to showing flanking residues
+    _flanking_transparency = 85  # Default transparency value (0-100)
     # Default chain colors
     CHAIN_A_COLOR = "#816DF9"
     CHAIN_B_COLOR = "#FB8686"
@@ -52,4 +53,13 @@ class ProteinCraftData:
         if isinstance(enabled, bool):
             self._flanking_enabled = enabled
         else:
-            raise ValueError("enabled must be a boolean value") 
+            raise ValueError("enabled must be a boolean value")
+
+    def get_flanking_transparency(self):
+        return self._flanking_transparency
+
+    def set_flanking_transparency(self, transparency):
+        if isinstance(transparency, (int, float)) and 0 <= transparency <= 100:
+            self._flanking_transparency = int(transparency)
+        else:
+            raise ValueError("transparency must be a number between 0 and 100") 

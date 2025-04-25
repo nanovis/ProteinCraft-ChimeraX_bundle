@@ -96,6 +96,9 @@ class _ProteinCraftAPI(BundleAPI):
         elif ci.name == "proteincraft flankingEnabled":
             func = cmd.flankingEnabled
             desc = cmd.flankingEnabled_desc
+        elif ci.name == "proteincraft flankingTransparency":
+            func = cmd.flankingTransparency
+            desc = cmd.flankingTransparency_desc
         else:
             raise ValueError(f"trying to register unknown command: {ci.name}")
 
