@@ -1,0 +1,57 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "ProteinCraft RFdiffusion design input spec",
+    "type": "object",
+    "required": ["input_pdb", "contigs", "hotspot_res", "noise_scale", "num_designs"],
+    "properties": {
+      "input_pdb": {
+        "type": "string",
+        "description": "Path to the input PDB file"
+      },
+      "contigs": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "pattern": "^[A-Z]\\d+-\\d+(/\\d+-\\d+)?"
+        },
+        "description": "List of contig specifications, e.g. A1-93/2-5/B15-104/0"
+      },
+      "hotspot_res": {
+        "type": "array",
+        "items": { 
+          "type": "string",
+          "pattern": "^[A-Z]\\d+$"
+        },
+        "description": "List of chain+resnum for hotspots, e.g. [\"C113\", \"E73\"]"
+      },
+      "noise_scale": {
+        "type": "object",
+        "properties": {
+          "ca":    { "type": "number" },
+          "frame": { "type": "number" }
+        },
+        "required": ["ca","frame"]
+      },
+      "num_designs": {
+        "type": "integer",
+        "minimum": 1,
+        "description": "How many designs to generate"
+      },
+      "pbonds": {
+        "type": "array",
+        "description": "List of desired interactions (pseudo-bonds)",
+        "items": {
+          "type": "object",
+          "required": ["res1","res2","atom1","atom2","interaction"],
+          "properties": {
+            "res1":        { "type": "string" },
+            "res2":        { "type": "string" },
+            "atom1":       { "type": ["string","null"] },
+            "atom2":       { "type": ["string","null"] },
+            "interaction": { "type": "string" }
+          }
+        }
+      }
+    }
+  }
+  
