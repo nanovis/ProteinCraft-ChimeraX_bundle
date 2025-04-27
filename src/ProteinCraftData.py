@@ -10,7 +10,7 @@ class ProteinCraftData:
     _json_string = None
     _bond_detail = BondDetailType.AUTO
     _flankingNum = 2  # Default number of flanking residues
-    _flanking_enabled = True  # Default to showing flanking residues
+    _flanking_enabled = False  # Default to showing flanking residues
     _flanking_transparency = 85  # Default transparency value (0-100)
     # Default chain colors
     CHAIN_A_COLOR = "#816DF9"
