@@ -5,6 +5,7 @@ import urllib.request, urllib.parse
 import json
 from chimerax.core import models, selection
 import chimerax.atomic as atomic
+from chimerax.open_command import OpenerInfo
 
 
 def initialize(session):
@@ -62,6 +63,17 @@ class _ProteinCraftAPI(BundleAPI):
     """API for the ProteinCraft bundle."""
 
     api_version = 1  # Use BundleInfo and CommandInfo instances
+
+    @staticmethod
+    def run_provider(session, name, mgr):
+        """Run the provider for opening files."""
+        if mgr.name == "open command":
+            class PcraftinOpenerInfo(OpenerInfo):
+                def open(self, session, data, file_name, **kw):
+                    from .io import open_pcraftin
+                    return open_pcraftin(session, data, file_name, **kw)
+            return PcraftinOpenerInfo()
+        return None
 
     @staticmethod
     def register_command(bi, ci, logger):

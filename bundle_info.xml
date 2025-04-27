@@ -41,6 +41,19 @@ and "proteincraft sync" to synchronize with ProteinCraft.
     <Dependency name="ChimeraX-Core" version="~=1.1"/>
   </Dependencies>
 
+  <!-- Register ProteinCraft input format -->
+  <Providers manager="data formats">
+    <Provider name="ProteinCraft Input" 
+              suffixes=".pcraftin.json" 
+              category="Molecular structure"
+              encoding="utf-8" 
+              mime_types="application/json" />
+  </Providers>
+
+  <Providers manager="open command">
+    <Provider name="ProteinCraft Input" />
+  </Providers>
+
   <Classifiers>
     <!-- Development Status should be compatible with bundle version number -->
     <PythonClassifier>Development Status :: 3 - Alpha</PythonClassifier>
