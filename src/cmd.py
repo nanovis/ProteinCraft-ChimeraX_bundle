@@ -31,7 +31,13 @@ def _open_model(session, filepath):
     try:
         # Get file extension using pathlib
         ext = Path(filepath).suffix.lower()
-        format_str = "pdb" if ext.startswith(".pdb") else "cif" 
+        if ext.startswith(".pdb"):
+            format_str = "pdb"
+        elif ext.startswith(".cif"):
+            format_str = "mmcif"
+        else:
+            session.logger.error(f"Unsupported file format: {ext}. Only .pdb and .cif formats are supported.")
+            return None
         
         model = run(session, f"open {filepath} format {format_str}")[0]
 
